@@ -3,8 +3,8 @@ export CC  = gcc
 export CXX = g++
 export NVCC =nvcc
 
-export CFLAGS = -Wall -O3 -msse3 -Wno-unknown-pragmas -funroll-loops -I../mshadow/ -I..
-export LDFLAGS=
+export CFLAGS = -Wall -O3 -msse3 -Wno-unknown-pragmas -funroll-loops -I../mshadow/ -I.. -I/usr/local/cuda-6.5/include
+export LDFLAGS= -L/usr/local/cuda-6.5/lib64 -lcublas -lcurand -lcudart
 export NVCCFLAGS = -g -O3 -ccbin $(CXX)
 
 # specify tensor path
