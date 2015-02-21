@@ -4,10 +4,10 @@ export CXX = g++
 export NVCC =nvcc
 
 export CFLAGS = -Wall -g -O3 -msse3 -Wno-unknown-pragmas -funroll-loops -I./mshadow/ -I/usr/local/cuda-6.5/include
-
+blas=1
 ifeq ($(blas),1)
- LDFLAGS= -L/usr/local/cuda-6.5/lib64 -lm -lcudart -lcublas -lcurand -lz `pkg-config --libs opencv` -lblas
- CFLAGS+= -DMSHADOW_USE_MKL=0 -DMSHADOW_USE_CBLAS=1
+ LDFLAGS= -L/usr/local/cuda-6.5/lib64 -lm -lcudart -lcublas -lcurand -lz `pkg-config --libs opencv` -llapack -lblas -lpthread
+ CFLAGS+= -DMSHADOW_USE_MKL=0 -DMSHADOW_USE_CBLAS=1 -I/usr/include/atlas
 else
  LDFLAGS= -L/usr/local/cuda-6.5/lib64 -lm -lcudart -lcublas -lmkl_core -lmkl_intel_lp64 -lmkl_intel_thread -liomp5 -lpthread -lcurand -lz `pkg-config --libs opencv`
 endif

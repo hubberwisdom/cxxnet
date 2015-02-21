@@ -2,32 +2,40 @@
 export CC  = gcc
 export CXX = g++
 export NVCC =nvcc
+export CFLAGS = -Wall -O3 -msse3 -Wno-unknown-pragmas -funroll-loops -I../../
 
-export CFLAGS = -Wall -O3 -msse3 -Wno-unknown-pragmas -funroll-loops -DMSHADOW_USE_MKL=0 -DMSHADOW_USE_CBLAS=1 -I/usr/include/atlas -I../mshadow/ -I.. -I/usr/local/cuda-6.5/include
-export LDFLAGS= -L/usr/local/cuda-6.5/lib64 -lcublas -lcurand -lcudart -llapack -lblas -lpthread
-export NVCCFLAGS = -g -O3 -ccbin $(CXX)
+
+ifeq ($(blas),1)
+	LDFLAGS= -lcblas -lm -lcudart -lcublas -lcurand 
+	CFLAGS+= -DMSHADOW_USE_MKL=0 -DMSHADOW_USE_CBLAS=1
+else
+	LDFLAGS=  -lm -lcudart -lcublas -lcurand  -lmkl_core -lmkl_intel_lp64 -lmkl_intel_thread -liomp5 -lpthread 
+endif
+export NVCCFLAGS = -O3 --use_fast_math -ccbin $(CXX)
 
 # specify tensor path
-BIN = im2bin
+BIN =
 OBJ =
 CUOBJ =
-CUBIN =
+CUBIN = nnet convnet
 .PHONY: clean all
 
 all: $(BIN) $(OBJ) $(CUBIN) $(CUOBJ)
 
-im2bin: im2bin.cpp
+nnet: nnet.cu
+convnet: convnet.cu
+
 $(BIN) :
-	$(CXX) $(CFLAGS) -o $@ $(filter %.cpp %.o %.c, $^)  $(LDFLAGS)
+	$(CXX) $(CFLAGS) -o $@ $(filter %.cpp %.o %.c, $^) $(LDFLAGS) 
 
 $(OBJ) :
 	$(CXX) -c $(CFLAGS) -o $@ $(firstword $(filter %.cpp %.c, $^) )
 
 $(CUOBJ) :
 	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+
 $(CUBIN) :
 	$(NVCC) -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" -Xlinker "$(LDFLAGS)" $(filter %.cu %.cpp %.o, $^)
 
 clean:
 	$(RM) $(OBJ) $(BIN) $(CUBIN) $(CUOBJ) *~
-
