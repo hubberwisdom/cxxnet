@@ -39,6 +39,8 @@ namespace cxxnet {
         /*! \brief  predict labels */
         virtual void Predict( std::vector<float> &preds, const DataBatch& batch ) = 0;
         virtual void PredictRaw( std::vector<std::vector<float> > &preds, const DataBatch &batch) = 0;
+
+        virtual void ExtractFeatures(int layer_id, std::vector<std::vector<float> > &features, const DataBatch &batch) = 0;
     };
 };
 

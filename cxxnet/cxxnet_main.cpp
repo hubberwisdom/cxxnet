@@ -69,6 +69,7 @@ namespace cxxnet{
             if( task == "train" ) this->TaskTrain();
             if( task == "pred")   this->TaskPredict();
             if( task == "pred_raw") this->TaskPredictRaw();
+            if( task == "feat_raw") this->TaskExtractFeatures(atoi(argv[2]));
             return 0;
         }
 
@@ -207,7 +208,7 @@ namespace cxxnet{
                         itr_evals.push_back( cxxnet::CreateIterator( itcfg ) );
                         eval_names.push_back( evname );
                     }
-                    if( flag == 3 && (task == "pred" || task == "pred_raw" )){
+                    if( flag == 3 && (task == "pred" || task == "pred_raw" || task == "feat_raw")){
                         utils::Assert( itr_pred == NULL, "can only have one data:test" );
                         itr_pred = cxxnet::CreateIterator( itcfg );
                     }
@@ -266,6 +267,28 @@ namespace cxxnet{
             printf("finished prediction, write into %s\n", name_pred.c_str());
 
       }
+        inline void TaskExtractFeatures(int layer_id) {
+        	utils::Assert( itr_pred != NULL, "must specify a predict iterator to generate predictions");
+        	printf("start extracting features ...\n");
+        	FILE *fo = utils::FopenCheck(name_pred.c_str(), "w");
+        	itr_pred->BeforeFirst();
+        	int index = 1;
+        	while (itr_pred->Next()) {
+        		printf("begin: Batch %05d ...\n", index++);
+        		const DataBatch& batch = itr_pred->Value();
+        		std::vector<std::vector<float> > features;
+        		net_trainer->ExtractFeatures(layer_id, features, batch);
+        		for (mshadow::index_t j = 0; j < features.size(); ++j) {
+        			for (mshadow::index_t k = 0; k < features[j].size(); ++k) {
+        				fprintf(fo, "%g ", features[j][k]);
+        			}
+        			fprintf(fo, "\n");
+        		}
+        	}
+        	fclose( fo );
+        	printf("finished! write into %s\n", name_pred.c_str());
+
+        }
         inline void TaskTrain( void ){
             time_t start    = time( NULL );
             unsigned long elapsed = 0;

@@ -244,6 +244,11 @@ namespace cxxnet {
         inline Node<xpu>& in( void ){
             return nodes[0];
         }
+        /*! \brief middle node */
+        inline Node<xpu>& layer( int layer_id ){
+        	Assert( layer_id >= 0 && layer_id < nodes.size() );
+        	return nodes[layer_id];
+        }
         /*! \brief output node */
         inline Node<xpu>& out( void ){
             return nodes.back();
@@ -438,6 +443,16 @@ namespace cxxnet {
                 }
             }
         }
+        virtual void ExtractFeatures(int layer_id, std::vector<std::vector<float> > &features, const DataBatch& batch) {
+        	this->PrepareFeatureTemp(layer_id, batch);
+        	features.resize(temp.shape[1]);
+        	for( index_t i = 0; i <temp.shape[1]; ++i ) {
+        		features[i].resize(temp.shape[0]);
+        		for (index_t j = 0; j < temp.shape[0]; ++j) {
+        			features[i][j] = temp[i][j];
+        		}
+        	}
+        }
     protected:
         // put prediction into temp
         virtual void PreparePredTemp( const DataBatch& batch ){
@@ -447,6 +462,14 @@ namespace cxxnet {
             net.Forward( false );
             this->SyncOuput();
         }
+        // put prediction into temp
+        virtual void PrepareFeatureTemp(int layer_id, const DataBatch& batch ){
+        	net.in().Pin();
+        	mshadow::Copy( net.in().data, batch.data );
+        	net.in().Unpin();
+        	net.Forward( false );
+        	this->SyncOuputForFeatures(layer_id);
+        }
     private:
         inline void SyncOuput( void ){
             mshadow::Shape<4> oshape  = net.out().data.shape;
@@ -455,6 +478,14 @@ namespace cxxnet {
             net.out().Pin();
             mshadow::Copy( temp, net.out().data[0][0] );
             net.out().Unpin();
+        }
+        inline void SyncOuputForFeatures( int layer_id ){
+        	mshadow::Shape<4> oshape  = net.layer(layer_id).data.shape;
+        	Assert( net.layer(layer_id).is_mat() );
+        	temp.Resize( mshadow::Shape2( oshape[1], oshape[0] ) );
+        	net.layer(layer_id).Pin();
+        	mshadow::Copy( temp, net.layer(layer_id).data[0][0] );
+        	net.layer(layer_id).Unpin();
         }
         inline float TransformPred( mshadow::Tensor<cpu,1> pred ){
             switch( loss_type ){
