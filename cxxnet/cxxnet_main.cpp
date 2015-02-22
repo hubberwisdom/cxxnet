@@ -272,7 +272,6 @@ namespace cxxnet{
         	printf("start extracting features ...\n");
         	FILE *fo = utils::FopenCheck(name_pred.c_str(), "w");
         	itr_pred->BeforeFirst();
-        	int index = 1;
         	while (itr_pred->Next()) {
         		const DataBatch& batch = itr_pred->Value();
         		std::vector<std::vector<float> > features;
