@@ -274,7 +274,6 @@ namespace cxxnet{
         	itr_pred->BeforeFirst();
         	int index = 1;
         	while (itr_pred->Next()) {
-        		printf("begin: Batch %05d ...\n", index++);
         		const DataBatch& batch = itr_pred->Value();
         		std::vector<std::vector<float> > features;
         		net_trainer->ExtractFeatures(layer_id, features, batch);
