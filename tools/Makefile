@@ -3,8 +3,14 @@ export CC  = gcc
 export CXX = g++
 export NVCC =nvcc
 
-export CFLAGS = -Wall -O3 -msse3 -Wno-unknown-pragmas -funroll-loops -DMSHADOW_USE_MKL=0 -DMSHADOW_USE_CBLAS=1 -I/usr/include/atlas -I../mshadow/ -I.. -I/usr/local/cuda-6.5/include
-export LDFLAGS= -L/usr/local/cuda-6.5/lib64 -lcublas -lcurand -lcudart -llapack -lblas -lpthread
+export CFLAGS = -Wall -O3 -msse3 -Wno-unknown-pragmas -funroll-loops -I../mshadow/ -I.. -I/usr/local/cuda-6.5/include
+export LDFLAGS= -L/usr/local/cuda-6.5/lib64 -lcublas -lcurand -lcudart -lpthread
+
+ifeq ($(blas),1)
+	CFLAGS += -DMSHADOW_USE_MKL=0 -DMSHADOW_USE_CBLAS=1 -I/usr/include/atlas
+	LDFLAGS += -llapack -lblas
+endif
+
 export NVCCFLAGS = -g -O3 -ccbin $(CXX)
 
 # specify tensor path
